@@ -4,27 +4,40 @@
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.swp
 *.swo
+*.sw?
 
 # =========================
-# Node / Vite / React build artifacts
+# Node / Package Managers
 # =========================
 node_modules/
-dist/
-dist-ssr/
-*.local
-.env
-.env.*
-!.env.example
-
-# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# =========================
+# Build Artifacts
+# =========================
+dist/
+dist-ssr/
+coverage/
+*.local
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
 
 # =========================
 # TypeScript
@@ -41,9 +54,8 @@ firestore-debug.log*
 ui-debug.log*
 functions/.runtimeconfig.json
 
-# If you use Firebase emulators
+# Firebase Emulators
 emulators/
-*.log
 
 # =========================
 # Yarn Berry
@@ -57,13 +69,17 @@ emulators/
 
 .pnp.*
 
-
 # =========================
-# Testing / Coverage (optional)
+# Testing
 # =========================
-coverage/
 playwright-report/
 test-results/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
 
 # =========================
 # Misc

@@ -24,7 +24,7 @@ This made us confusing and mad sometimes. 🤯 I built this app to reduce unnece
 
 #### Teck Stack:
 Vite 로 프로젝트 생성, 빌드
-React + TypeScript 로 작성
+React + TypeScript 로 작성 + React Router
 PWA setting, manifest, service worker setting, web push setting
 Cloud Firestore
 Firebase Cloud Messaging
