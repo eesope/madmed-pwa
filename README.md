@@ -7,7 +7,7 @@ This made us confusing and mad sometimes. 🤯 I built this app to reduce unnece
 
 #### How to use:
 1. 처음에 앱을 다운로드 후
-2. 구글 로그인으로 계정 만들기 (사용자 구분만 가능하다면 꼭 로그인 필요 없이 id 지정 익명 로그인 -> 계속 기억해도 됨. 장단점 비교 필요)
+2. 구글 로그인으로 계정 만들기 (MVP = id 지정 익명 로그인 -> 나중에 google 계정 연결 예정)
 3. 하우스홀드 아이디 유무 물어본 후 없다면 등록
 4. 해당 하우스 홀드 아이디 안에 펫 등록
 5. 펫의 약 등록
@@ -40,6 +40,7 @@ PWA 용으로 배포 via Firebase Hosting, Cloud Functions/Run, Cloud Scheduler
 FCM(Web Push) 발송
 아이폰에 알림 표시
 📌 알림 예약이라는 개념이 없음
+서버(Cloud Functions)가 주기적으로 돌면서
 → “지금 보내야 하면 지금 보낸다”
 
 
@@ -79,6 +80,7 @@ MadMed PWA(React+TS) + Firestore + Auth(익명→구글 연결) + FCM(Web Push) 
 
 
 #### Known Bugs
+- push notification delay?
 
 #### File Tree
 madmed/
