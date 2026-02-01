@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { listPets, listMedications, getStatus, markDoseTaken } from "../../services/medService";
+import {
+  addPet,
+  getStatus,
+  listMedications,
+  listPets,
+  markDoseTaken,
+} from "../../services/medService";
 import type { Medication, MedicationStatus, Pet } from "../../types/domain";
 
 function formatTime(ms: number | null) {
@@ -16,11 +22,15 @@ export function DashboardPage() {
 
   const [status, setStatus] = useState<MedicationStatus | null>(null);
 
+  const [newPetName, setNewPetName] = useState("");
+  const [addingPet, setAddingPet] = useState(false);
+
   const selectedMed = useMemo(
     () => meds.find((m) => m.id === selectedMedId) ?? null,
     [meds, selectedMedId]
   );
 
+  // 초기 pets 로드
   useEffect(() => {
     (async () => {
       const p = await listPets();
@@ -29,6 +39,7 @@ export function DashboardPage() {
     })();
   }, []);
 
+  // pet 변경 → meds 로드
   useEffect(() => {
     (async () => {
       if (!selectedPetId) {
@@ -47,6 +58,7 @@ export function DashboardPage() {
     })();
   }, [selectedPetId]);
 
+  // med 변경 → status 로드
   useEffect(() => {
     (async () => {
       if (!selectedMedId) {
@@ -65,9 +77,27 @@ export function DashboardPage() {
     setStatus(s);
   }
 
+  async function onAddPet() {
+    const name = newPetName.trim();
+    if (!name) return;
+
+    setAddingPet(true);
+    try {
+      const created = await addPet(name);
+      const p = await listPets();
+      setPets(p);
+      setSelectedPetId(created.id);
+      setNewPetName("");
+    } finally {
+      setAddingPet(false);
+    }
+  }
+
   const statusText = useMemo(() => {
     if (!status) return "";
-    return `morning: ${formatTime(status.morningTakenAt)} / evening: ${formatTime(status.eveningTakenAt)}`;
+    return `morning: ${formatTime(status.morningTakenAt)} / evening: ${formatTime(
+      status.eveningTakenAt
+    )}`;
   }, [status]);
 
   const morningDone = Boolean(status?.morningTakenAt);
@@ -84,7 +114,9 @@ export function DashboardPage() {
           <>
             <div className="text-sm">
               Selected: <span className="font-medium">{selectedMed.name}</span>
-              {selectedMed.dose ? <span className="text-gray-500"> ({selectedMed.dose})</span> : null}
+              {selectedMed.dose ? (
+                <span className="text-gray-500"> ({selectedMed.dose})</span>
+              ) : null}
               {" · "}
               <Link className="underline text-sm" to={`/meds/${selectedMed.id}`}>
                 Open
@@ -113,19 +145,17 @@ export function DashboardPage() {
 
             {morningDone && eveningDone ? (
               <div className="text-sm text-green-700">All done for today ✅</div>
-            ) : (
-              <div className="text-xs text-gray-500">
-              </div>
-            )}
+            ) : null}
           </>
         ) : (
-          <div className="text-sm text-gray-500">No medication found for this pet (mock).</div>
+          <div className="text-sm text-gray-500">No medication found for this pet (yet).</div>
         )}
       </div>
 
-      <div className="rounded-xl border p-4 space-y-3">
-        <div className="text-sm text-gray-600">Select pet</div>
+      <div className="rounded-xl border p-4 space-y-4">
+        <div className="text-sm text-gray-600">Pets</div>
 
+        {/* Select */}
         <select
           value={selectedPetId}
           onChange={(e) => setSelectedPetId(e.target.value)}
@@ -138,18 +168,37 @@ export function DashboardPage() {
           ))}
         </select>
 
-        {pets.length > 0 ? (
+        {selectedPetId ? (
           <Link className="text-sm underline" to={`/pets/${selectedPetId}`}>
             View pet details
           </Link>
         ) : null}
+
+        {/* Add Pet */}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+          <input
+            value={newPetName}
+            onChange={(e) => setNewPetName(e.target.value)}
+            placeholder="New pet name (e.g. Domingo)"
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+          />
+          <button
+            onClick={onAddPet}
+            disabled={addingPet || !newPetName.trim()}
+            className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
+          >
+            {addingPet ? "Adding..." : "Add Pet"}
+          </button>
+        </div>
       </div>
 
       <div className="rounded-xl border p-4 space-y-2">
         <div className="text-sm text-gray-600">Medications</div>
 
         {meds.length === 0 ? (
-          <div className="text-sm text-gray-500">No meds yet (mock).</div>
+          <div className="text-sm text-gray-500">
+            No meds yet. Add one from the Pet page.
+          </div>
         ) : (
           meds.map((m) => (
             <div key={m.id} className="flex items-center justify-between">
