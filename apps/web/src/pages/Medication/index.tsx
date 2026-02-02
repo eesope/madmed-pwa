@@ -172,7 +172,7 @@ export function MedicationPage() {
 
           {perm === "denied" ? (
             <div className="text-xs text-gray-500">
-              Tip: 브라우저 주소창 왼쪽 “사이트 설정(🔒)”에서 Notifications를 Allow로 바꿔야 합니다.
+              Tip: 개발자에게 연락해주세요.
             </div>
           ) : null}
         </div>

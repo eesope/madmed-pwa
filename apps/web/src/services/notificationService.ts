@@ -55,12 +55,21 @@ export function getPermissionHelpText(state: NotificationPermissionState): strin
 }
 
 // 테스트 버튼용
-
-export function showTestNotification(title: string, body?: string) {
-  // 권한/지원 여부는 호출 측에서 체크해도 되지만, 여기서도 안전하게 처리
+export async function showTestNotification(title: string, body?: string) {
   if (!isNotificationSupported()) return;
   if (Notification.permission !== "granted") return;
 
-  // 가장 단순한 테스트: 로컬 Notification
+  // iOS에서 더 잘 되는 경로: ServiceWorkerRegistration.showNotification
+  if ("serviceWorker" in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, body ? { body } : undefined);
+      return;
+    } catch {
+      // fallback below
+    }
+  }
+
+  // fallback (데스크탑 크롬 등)
   new Notification(title, body ? { body } : undefined);
 }

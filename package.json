@@ -11,5 +11,8 @@
     "dev": "yarn workspace web dev",
     "build": "yarn workspace web build",
     "preview": "yarn workspace web preview"
+  },
+  "devDependencies": {
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
