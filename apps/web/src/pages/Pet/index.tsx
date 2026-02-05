@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { addMedication, getPet, listMedications } from "../../services/medService";
+import { addMedication, getPet, listMedications } from "../../services/medService.firestore";
 import type { Medication, Pet } from "../../types/domain";
 
 export function PetPage() {

@@ -7,7 +7,7 @@ import {
   markDoseTaken,
   resetTodayStatus,
   setSchedule,
-} from "../../services/medService";
+} from "../../services/medService.firestore";
 import type { Medication, MedicationSchedule, MedicationStatus } from "../../types/domain";
 
 import {
@@ -264,7 +264,7 @@ export function MedicationPage() {
         </div>
 
         <button onClick={onResetToday} className="text-sm underline">
-          Reset today (mock)
+          Reset today
         </button>
       </div>
 

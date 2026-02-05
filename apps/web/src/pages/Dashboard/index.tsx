@@ -6,7 +6,7 @@ import {
   listMedications,
   listPets,
   markDoseTaken,
-} from "../../services/medService";
+} from "../../services/medService.firestore";
 import type { Medication, MedicationStatus, Pet } from "../../types/domain";
 
 function formatTime(ms: number | null) {

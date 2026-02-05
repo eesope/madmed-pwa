@@ -2,11 +2,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHouseholdId } from "../../app/householdStore";
-import {
-  createHouseholdWithCode,
-  joinHousehold,
-  normalizeHouseholdCode,
-} from "../../services/householdService";
+import { createHouseholdWithCode, joinHousehold } from "../../lib/firebase/householdService";
+import { normalizeHouseholdCode } from "../../lib/normalize";
+
 
 export function HouseholdPage() {
   const navigate = useNavigate();
@@ -37,8 +35,8 @@ export function HouseholdPage() {
     setError("");
     setBusy(true);
     try {
-      const { id } = await joinHousehold(normalizedCode);
-      setHouseholdId(id);
+      await joinHousehold(normalizedCode);
+      setHouseholdId(normalizedCode);
       navigate("/dashboard");
     } catch (e: any) {
       setError(e?.message ?? "Failed to join household.");
@@ -57,7 +55,7 @@ export function HouseholdPage() {
           <div className="font-mono text-sm">{householdId}</div>
 
           <button onClick={clearHouseholdId} className="text-sm underline">
-            Disconnect (mock)
+            Disconnect
           </button>
         </div>
       ) : null}
