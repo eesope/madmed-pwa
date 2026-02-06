@@ -7,8 +7,8 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/firebase";
-import { paths } from "@/lib/firebase/paths";
+import { db } from "../lib/firebase/firebase";
+import { paths } from "../lib/firebase/paths";
 import type { Pet, PetsRepo } from "./petsRepo";
 
 export const petsRepoFirestore: PetsRepo = {

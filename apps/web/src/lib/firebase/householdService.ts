@@ -15,11 +15,11 @@ export async function createHouseholdWithCode(householdIdRaw: string): Promise<{
 
   await setDoc(hhRef, { createdAt: serverTimestamp(), createdBy: uid });
 
-  await setDoc(doc(db, paths.member(householdId, uid)), {
-    role: "owner",
-    createdAt: serverTimestamp(),
-    pushTokens: [],
-  });
+  const memberRef = doc(db, paths.member(householdId, uid));
+
+  await setDoc(memberRef, {
+    role: "owner", createdAt: serverTimestamp(), pushTokens: [],}, 
+    {merge: true});
 
   return { id: householdId };
 }
@@ -34,8 +34,9 @@ export async function joinHousehold(householdIdRaw: string): Promise<void> {
   const hhSnap = await getDoc(hhRef);
   if (!hhSnap.exists()) throw new Error("Household code not found.");
 
-  await setDoc(
-    doc(db, paths.member(householdId, uid)),
+    const memberRef = doc(db, paths.member(householdId, uid));
+
+  await setDoc(memberRef,
     { role: "member", createdAt: serverTimestamp(), pushTokens: [] },
     { merge: true }
   );
