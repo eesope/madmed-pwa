@@ -10,60 +10,12 @@ import {
 } from "../../services/medService.firestore";
 import type { Medication, MedicationStatus, Pet } from "../../types/domain";
 
-// for messaging test
-import { getAuth } from "firebase/auth";
-import { useHouseholdId } from "../../app/householdStore";
-import { ensureFcmToken } from "../../services/notificationService";
-
-import { getApp } from "firebase/app";
-
 function formatTime(ms: number | null) {
   if (!ms) return "❌";
   return new Date(ms).toLocaleTimeString();
 }
 
 export function DashboardPage() {
-
-      console.log("uid:", getAuth().currentUser?.uid);
-      console.log("project:", getApp().options.projectId);
-
-
-  // for messaging test
-    const { householdId } = useHouseholdId();
-
-  const [pushBusy, setPushBusy] = useState(false);
-  const [pushMsg, setPushMsg] = useState<string>("");
-
-  async function onEnablePush() {
-    setPushMsg("");
-
-    if (!householdId) {
-      setPushMsg("householdId가 없어요. 먼저 household를 선택/생성해야 해요.");
-      return;
-    }
-
-    const uid = getAuth().currentUser?.uid;
-    if (!uid) {
-      setPushMsg("로그인이 아직 준비되지 않았어요. (currentUser가 null)");
-      return;
-    }
-
-    setPushBusy(true);
-    try {
-      const res = await ensureFcmToken({ householdId, uid });
-      if (res.ok) {
-        setPushMsg("FCM 토큰 저장 완료 ✅ (Firestore members/{uid}.pushTokens 확인)");
-        console.log("FCM token:", res.token); // 개발용
-      } else {
-        console.error(res.reason, res.error);
-        setPushMsg(`FCM 설정 실패: ${res.reason}`);
-      }
-    } finally {
-      setPushBusy(false);
-    }
-  }
-
-
 
   // state code
   const [pets, setPets] = useState<Pet[]>([]);
@@ -158,26 +110,10 @@ export function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
 
-      {/* MSG TEST */}
-        <div className="rounded-xl border p-4 space-y-3">
-        <div className="text-sm text-gray-600">Push (FCM) Setup</div>
+      <Link className="text-sm underline" to="/notifications">
+        → Notifications Lab 열기 (권한/테스트/FCM 설정)
+      </Link>
 
-        <div className="text-sm">
-          householdId: <span className="font-mono">{householdId ?? "❌ none"}</span>
-        </div>
-
-        <button
-          onClick={onEnablePush}
-          disabled={pushBusy}
-          className="rounded-lg bg-black px-3 py-2 text-sm text-white disabled:opacity-50"
-        >
-          {pushBusy ? "Setting up..." : "Enable Push + Save Token"}
-        </button>
-
-        {pushMsg ? <div className="text-sm">{pushMsg}</div> : null}
-      </div>
-
-      {/* MSG TEST FIN */}
 
       <div className="rounded-xl border p-4 space-y-3">
         <div className="text-sm text-gray-600">Today status</div>

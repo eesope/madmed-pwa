@@ -79,8 +79,9 @@ MadMed PWA React 컴포넌트 설계 + 페이지 흐름 + 상태 관리(useState
 MadMed PWA(React+TS) + Firestore + Auth(익명→구글 연결) + FCM(Web Push) + (크론) Cloud Functions
 
 
-#### Known Bugs
+#### Known Issues
 - push notification delay?
+- No foreground push notification
 
 #### File Tree
 madmed/

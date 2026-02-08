@@ -1,3 +1,5 @@
+// permission + token 발급
+
 const STORAGE_KEY = "madmed.notification.permission";
 
 export type NotificationPermissionState = NotificationPermission | "unsupported";
@@ -72,75 +74,116 @@ export async function showTestNotification(title: string, body?: string) {
   new Notification(title, body ? { body } : undefined);
 }
 
-// TODO 메시징 확인 후 코드 정리
 
-import { getMessaging, getToken, isSupported } from "firebase/messaging";
+import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 import { arrayUnion, doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "../lib/firebase/firebase";
+import { db, firebaseApp } from "../lib/firebase/firebase";
 
-/**
- * iOS PWA 포함 Web Push(FCM) 토큰 발급 + Firestore 저장
- * - households/{hid}/members/{uid}.pushTokens[]에 저장
- */
-export async function ensureFcmToken(params: {
-  householdId: string;
-  uid: string;
-  vapidPublicKey?: string; // 없으면 env에서 읽음
-}): Promise<
+// ✅ foreground
+export function startForegroundMessageListener(onPayload: (payload: any) => void) {
+  const messaging = getMessaging(firebaseApp);
+  return onMessage(messaging, (payload) => onPayload(payload));
+}
+
+type Step =
+  | "start"
+  | "check-supported"
+  | "check-permission"
+  | "request-permission"
+  | "wait-sw-ready"
+  | "get-token"
+  | "save-token"
+  | "done";
+
+export type PushStepLog = { at: number; step: Step; ok?: boolean; detail?: string };
+
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`Timeout: ${label} (${ms}ms)`)), ms);
+    p.then(
+      (v) => (clearTimeout(t), resolve(v)),
+      (e) => (clearTimeout(t), reject(e))
+    );
+  });
+}
+
+// ✅ 단계별 로그 버전
+export async function ensureFcmTokenWithSteps(
+  params: { householdId: string; uid: string; vapidPublicKey?: string },
+  onLog: (log: PushStepLog) => void
+): Promise<
   | { ok: true; token: string }
   | { ok: false; reason: "unsupported" | "permission-denied" | "no-token" | "save-failed"; error?: unknown }
 > {
-  // 1) 브라우저 지원 체크 (FCM 자체 지원 여부)
-  const fcmSupported = await isSupported().catch(() => false);
-  if (!fcmSupported) return { ok: false, reason: "unsupported" };
+  const log = (step: Step, ok?: boolean, detail?: string) =>
+    onLog({ at: Date.now(), step, ok, detail });
 
-  // 2) 알림 권한 확보 (기존 함수 재사용)
-  const permission = await requestNotificationPermission();
-  if (permission !== "granted") return { ok: false, reason: "permission-denied" };
+  log("start", true);
 
-  // 3) FCM 전용 서비스워커 등록 (public/firebase-messaging-sw.js 필요)
+  try {
+    const supported = await withTimeout(isSupported(), 5000, "isSupported()");
+    if (!supported) return { ok: false, reason: "unsupported" };
+    log("check-supported", true, "isSupported() true");
+  } catch (e) {
+    log("check-supported", false, String((e as any)?.message ?? e));
+    return { ok: false, reason: "unsupported", error: e };
+  }
+
+  log("check-permission", true, `Notification.permission=${Notification.permission}`);
+  if (Notification.permission !== "granted") {
+    log("request-permission", true);
+    const p = await requestNotificationPermission();
+    log("request-permission", p === "granted", `result=${p}`);
+    if (p !== "granted") return { ok: false, reason: "permission-denied" };
+  }
+
+  // ✅ 중요: 별도 register 하지 말고 "현재 PWA SW ready"를 사용
   let swReg: ServiceWorkerRegistration;
   try {
-    swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-  } catch (error) {
-    return { ok: false, reason: "no-token", error };
+    log("wait-sw-ready", true, "waiting navigator.serviceWorker.ready");
+    swReg = await withTimeout(navigator.serviceWorker.ready, 10000, "serviceWorker.ready");
+    log("wait-sw-ready", true, `scope=${swReg.scope}`);
+  } catch (e) {
+    log("wait-sw-ready", false, String((e as any)?.message ?? e));
+    return { ok: false, reason: "no-token", error: e };
   }
 
-  // 4) VAPID key 가져오기 (param 우선, 없으면 env)
   const vapidKey = params.vapidPublicKey ?? import.meta.env.VITE_FIREBASE_VAPID_PUBLIC_KEY;
-  if (!vapidKey) {
-    return { ok: false, reason: "no-token", error: new Error("Missing VAPID public key") };
-  }
+  if (!vapidKey) return { ok: false, reason: "no-token", error: new Error("Missing VAPID public key") };
 
-  // 5) 토큰 발급
-  const messaging = getMessaging();
+  const messaging = getMessaging(firebaseApp);
+
   let token: string | null = null;
-
   try {
-    token = await getToken(messaging, {
-      vapidKey,
-      serviceWorkerRegistration: swReg,
-    });
-  } catch (error) {
-    return { ok: false, reason: "no-token", error };
+    log("get-token", true, "calling getToken()");
+    token = await withTimeout(
+      getToken(messaging, { vapidKey, serviceWorkerRegistration: swReg }),
+      15000,
+      "getToken()"
+    );
+    log("get-token", Boolean(token), token ? "token acquired" : "token null");
+  } catch (e) {
+    log("get-token", false, String((e as any)?.message ?? e));
+    return { ok: false, reason: "no-token", error: e };
   }
 
   if (!token) return { ok: false, reason: "no-token" };
 
-  // 6) Firestore에 저장 (members/{uid}.pushTokens[])
   try {
+    log("save-token", true, "saving to Firestore");
     const memberRef = doc(db, "households", params.householdId, "members", params.uid);
-    await updateDoc(memberRef, {
-      pushTokens: arrayUnion(token),
-      pushTokenUpdatedAt: serverTimestamp(),
-    });
-  } catch (error) {
-    // 여기서 실패하면 보통:
-    // - members/{uid} 문서가 아직 없거나
-    // - rules에서 members 업데이트가 막혀있거나
-    // - householdId/uid 경로가 틀렸거나
-    return { ok: false, reason: "save-failed", error };
+    await withTimeout(
+      updateDoc(memberRef, { pushTokens: arrayUnion(token), pushTokenUpdatedAt: serverTimestamp() }),
+      8000,
+      "updateDoc(members)"
+    );
+    log("save-token", true, "saved");
+  } catch (e) {
+    log("save-token", false, String((e as any)?.message ?? e));
+    return { ok: false, reason: "save-failed", error: e };
   }
 
+  log("done", true);
   return { ok: true, token };
 }
+

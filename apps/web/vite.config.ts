@@ -10,6 +10,9 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       manifest: {
         name: "MadMed",
         short_name: "MadMed",
@@ -27,13 +30,16 @@ export default defineConfig({
       },
       // dev에서도 SW 등록/테스트 가능하게 (iPhone 테스트에 도움)
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: "module",
       },
       workbox: {
         // React Router SPA용: 네비게이션 요청은 index.html로
         navigateFallback: "/index.html",
       },
+      // injectManifest 에서는 navigateFallback 을 Service Worker 코드에서 처리 
+      // == SW는 VitePWA 가 자동 생성하는 블랙박스 SW가 아닌, customized src/sw.ts 가 됨
+      // == Firebase Cloud Message background 로직도 위 파일에 포함 가능 
     }),
   ],
   server: {

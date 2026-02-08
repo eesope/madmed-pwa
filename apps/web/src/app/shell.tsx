@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { useHouseholdId } from "./householdStore";
 
+
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
     <NavLink
@@ -20,6 +21,7 @@ function NavItem({ to, label }: { to: string; label: string }) {
 export function AppShell() {
   const { householdId } = useHouseholdId();
 
+
   return (
     <div className="min-h-full">
       <header className="border-b bg-white">
@@ -35,13 +37,14 @@ export function AppShell() {
               </span>
             ) : (
               <span className="rounded-full border px-3 py-1 text-xs text-gray-500">
-                no household
+                ?
               </span>
             )}
 
             <nav className="flex items-center gap-2">
               <NavItem to="/household" label="Household" />
               <NavItem to="/dashboard" label="Dashboard" />
+              <NavItem to="/notifications" label="Notifications" />
             </nav>
           </div>
         </div>
