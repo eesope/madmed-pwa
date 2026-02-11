@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": false, // 초보자일 때는 잠시 꺼두는 게 편합니다
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "strict": false, // 엄격한 검사를 완화합니다
+    "target": "es2017",
+    "skipLibCheck": true, // 라이브러리 폴더(@types 등)의 에러를 무시합니다. (필수!)
+    "outDir": "lib"
+  },
+  "include": [
+    "src",
+    ".eslintrc.js"
+  ]
+}

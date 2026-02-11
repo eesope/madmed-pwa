@@ -36,25 +36,35 @@ const firebaseApp = initializeApp({
 
 const messaging = getMessaging(firebaseApp);
 
-onBackgroundMessage(messaging, (payload) => {
-  const title = payload?.notification?.title ?? "MadMed";
-  const options: NotificationOptions = {
-    body: payload?.notification?.body ?? "Time for medication",
-    data: payload?.data ?? {},
-  };
+onBackgroundMessage(messaging, async (payload) => {
+  // to prevent repetitive message
+  if (payload?.notification) return;
 
-  self.registration.showNotification(title, options);
+  // show only data-only message
+  const title = payload?.data?.title ?? "MadMed";
+  const body = payload?.data?.body ?? "Time for medication";
+
+  await self.registration.showNotification(title, {body, 
+    icon: '/pwa-192.png',
+    badge: '/pwa-192.png',
+    tag: 'medication-reminder',
+    data: payload?.data ?? {},
+  });
 });
 
-// (선택) 알림 클릭 처리
+// 알림 클릭 처리/딥링크
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(
-    (async () => {
-      const allClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  const url = (event.notification.data?.link as string) ?? "/dashboard";
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const hadClient = allClients.length > 0;
+    if (hadClient) {
       const client = allClients[0];
-      if (client) return client.focus();
-      return self.clients.openWindow("/");
-    })()
-  );
+      await client.focus();
+      client.navigate(url);
+    } else {
+      await self.clients.openWindow(url);
+    }
+  })());
 });

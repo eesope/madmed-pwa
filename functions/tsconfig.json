@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "noImplicitAny": false,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "ESNext.AsyncIterable",], 
+    "outDir": "lib",
+    "declaration": true,
+    "strict": false,
+    "skipLibCheck": true,         // 외부 라이브러리 에러 무시 (핵심)
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "compileOnSave": true,
+  "include": ["src/**/*.ts"],    // 오직 functions/src 내부만 검사
+  "exclude": [
+    "node_modules", 
+    "../../node_modules",        // 상위 폴더 node_modules 접근 차단 (핵심)
+    "lib"
+  ]
+}
