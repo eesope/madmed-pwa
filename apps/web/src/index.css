@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Tailwind v4 스타일 테마 정의 */
+@theme {
+  --color-primary: rgb(40, 87, 92);
+  --color-light-teal: rgb(214, 227, 230);
+  --color-dark-teal: rgb(75, 146, 146); 
+  --color-beige: rgb(248, 248, 247);
+}
+
+@layer base {
+  /* 이미지 로딩 시 깜빡임 방지 및 부드러운 전환 */
+  img {
+    @apply transition-opacity duration-500;
+  }
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;

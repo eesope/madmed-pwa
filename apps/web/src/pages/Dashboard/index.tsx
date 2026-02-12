@@ -110,11 +110,6 @@ export function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
 
-      <Link className="text-sm underline" to="/notifications">
-        → Notifications Lab 열기 (권한/테스트/FCM 설정)
-      </Link>
-
-
       <div className="rounded-xl border p-4 space-y-3">
         <div className="text-sm text-gray-600">Today status</div>
 
