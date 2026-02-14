@@ -1,3 +1,5 @@
+// functions/src/index.ts
+
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
@@ -122,7 +124,7 @@ export const medReminderCron = onSchedule("every 5 minutes", async (event) => {
             tokens: allTokens,
             data: {
               title: "MadMed",
-              body: `${schedule.medId} 약 먹일 시간이에요! (${t.label})`,
+              body: `${t.label} 약 먹일 시간이에요.`,
               medId: medId,
               hid: hid,
               link: "/dashboard"
@@ -140,9 +142,9 @@ export const medReminderCron = onSchedule("every 5 minutes", async (event) => {
         } else {
           // 왜 발송되지 않았는지 간단히 요약 로그
           const reason = isTakenToday ? "이미 복용함" : 
-                         !isTimeStarted ? "아직 알림 시간 전" :
-                         isTimeExpired ? "알림 유효 시간 지남" :
-                         isRecentlyAlerted ? "방금 알림을 보냄(간격 유지)" : "알 수 없는 이유";
+                        !isTimeStarted ? "아직 알림 시간 전" :
+                        isTimeExpired ? "알림 유효 시간 지남" :
+                        isRecentlyAlerted ? "방금 알림을 보냄(간격 유지)" : "알 수 없는 이유";
           console.log(`[PASS] ${slotPrefix} 발송 생략 (이유: ${reason})`);
         }
       }
@@ -152,4 +154,31 @@ export const medReminderCron = onSchedule("every 5 minutes", async (event) => {
   }
 
   console.log("--- [CRON END] ---");
+});
+
+
+export const dailyResetCron = onSchedule({
+  schedule: "0 0 * * *", // 매일 자정 실행
+  timeZone: "America/Vancouver", // 밴쿠버 기준 자정
+}, async (event) => {
+  const db = admin.firestore();
+  
+  try {
+    // 모든 status 컬렉션을 찾아 복용 기록(morning/eveningTakenAt)을 null로 초기화
+    const statusSnap = await db.collectionGroup("status").get();
+    
+    const batch = db.batch();
+    statusSnap.docs.forEach((doc) => {
+      batch.update(doc.ref, {
+        morningTakenAt: null,
+        eveningTakenAt: null,
+        // lastReminderAt은 알림 간격 조절용이므로 굳이 지우지 않아도 됩니다.
+      });
+    });
+    
+    await batch.commit();
+    console.log(`[RESET] ${statusSnap.size}개의 복용 상태를 초기화했습니다.`);
+  } catch (error) {
+    console.error("[RESET ERROR]", error);
+  }
 });

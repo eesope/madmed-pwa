@@ -33,6 +33,27 @@ export function DashboardPage() {
     [meds, selectedMedId]
   );
 
+  const refreshData = async () => {
+    if (selectedMedId) {
+      console.log("새로고침 중: ", selectedMedId);
+      const s = await getStatus(selectedMedId);
+      setStatus(s);
+    }
+    // 추후 listPets()나 listMedications() 도 갱신
+  };
+
+  useEffect(() => {
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          refreshData(); 
+        }
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [selectedMedId]); // selectedMedId가 바뀔 때마다 리스너가 최신 ID를 참조하도록 함
+
+
   // 초기 pets 로드
   useEffect(() => {
     (async () => {

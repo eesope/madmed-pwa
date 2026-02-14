@@ -30,8 +30,8 @@ export function AppShell() {
     <div className="min-h-screen bg-beige flex flex-col items-center">
       
       {/* header에서 border-b(하단 선)를 제거했습니다 */}
-      <header className="w-full bg-beige">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3 p-4">
+    <header className="w-full bg-beige pt-[env(safe-area-inset-top)]">        
+      <div className="mx-auto flex max-w-md items-center justify-between gap-3 p-4">
           
           {/* Mad와 Med의 색상을 다르게 지정 */}
           <Link to="/" className="text-xl font-bold tracking-tight">
@@ -59,7 +59,7 @@ export function AppShell() {
       </header>
 
       {/* 메인 컨텐츠 영역도 max-w-md로 제한하여 모바일 앱 레이아웃 유지 */}
-      <main className="w-full max-w-md p-4">
+      <main className="w-full max-w-md flex-1 p-4">
         <Outlet />
       </main>
     </div>

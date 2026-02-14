@@ -22,14 +22,13 @@ This made us confusing and mad sometimes. 🤯 I built this app to reduce unnece
 14. 투약 여부는 23시간 마다  초기화되고, 투약 여부 로그 기록함
 
 
-#### Teck Stack:
+#### Tech Stack:
 Vite 로 프로젝트 생성, 빌드
 React + TypeScript 로 작성 + React Router
 PWA setting, manifest, service worker setting, web push setting
 Cloud Firestore
 Firebase Cloud Messaging
 PWA 용으로 배포 via Firebase Hosting, Cloud Functions/Run, Cloud Scheduler
-
 
 #### Data Flow:
 사용자가 약 스케줄 등록
@@ -80,8 +79,10 @@ MadMed PWA(React+TS) + Firestore + Auth(익명→구글 연결) + FCM(Web Push) 
 
 
 #### Known Issues
-- push notification delay?
+- Push notification delay?
 - No foreground push notification
+- UX: Raw time zone from IANA DB
+- UX: medication 화면에서 save 를 누르면 notification (FCM) 권한 주기
 
 #### File Tree
 madmed/
@@ -117,9 +118,13 @@ madmed/
         time.ts
         validation.ts
      
-     
-     
 #### TECH DEBT
 - Corepack in Node?
 - Yarn workspaces
+- 약 주인 누구인지 알려주기
     
+
+#### 재배포 
+1. `yarn build` in apps/web
+2. `npm run build` in functions
+3. `firebase deploy` in root

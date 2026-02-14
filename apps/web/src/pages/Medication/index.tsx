@@ -15,8 +15,6 @@ function formatTime(ms: number | null) {
   return new Date(ms).toLocaleTimeString();
 }
 
-
-
 export function MedicationPage() {
   const { medId } = useParams();
   const [med, setMed] = useState<Medication | null>(null);

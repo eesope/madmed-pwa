@@ -1,3 +1,5 @@
+// apps/web/src/services/medService.firestore.ts,
+
 import type {
   Medication,
   MedicationId,
@@ -202,10 +204,12 @@ export async function getStatus(medId: MedicationId): Promise<MedicationStatus> 
   }
 
   const data = snap.data() as any;
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+
   return {
     medId,
-    morningTakenAt: data.morningTakenAt ?? null,
-    eveningTakenAt: data.eveningTakenAt ?? null,
+    morningTakenAt: data.morningTakenAt < todayStart ? null : data?.morningTakenAt,
+    eveningTakenAt: data.eveningTakenAt < todayStart ? null : data?.eveningTakenAt,
   } satisfies MedicationStatus;
 }
 
